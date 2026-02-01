@@ -8,6 +8,7 @@ from .render import render_markdown
 
 @dataclass
 class SyncStats:
+    total: int = 0
     created: int = 0
     updated: int = 0
     moved: int = 0
@@ -157,5 +158,7 @@ def sync(
         if verbose:
             for deck in deleted_decks:
                 print(f"Removed empty deck: {deck}")
+
+    stats.total = len(existing) + stats.created - stats.deleted
 
     return stats

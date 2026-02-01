@@ -58,7 +58,8 @@ def cmd_sync(args: argparse.Namespace) -> int:
         print(f"Error: {e}", file=sys.stderr)
         return 1
 
-    print(f"\nCreated: {stats.created}")
+    print(f"\nTotal: {stats.total}")
+    print(f"Created: {stats.created}")
     print(f"Updated: {stats.updated}")
     print(f"Moved: {stats.moved}")
     print(f"Deleted: {stats.deleted}")
