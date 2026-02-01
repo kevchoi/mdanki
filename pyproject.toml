@@ -1,0 +1,25 @@
+[project]
+name = "md-anki"
+version = "0.1.0"
+description = "Sync Markdown notes to Anki via AnkiConnect"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "httpx>=0.28.1",
+    "mistune>=3.2.0",
+]
+
+[project.scripts]
+mdanki = "mdanki.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
