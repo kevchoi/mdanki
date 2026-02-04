@@ -1,4 +1,4 @@
-# md-anki
+# mdanki
 
 Sync Markdown flashcards to Anki via AnkiConnect.
 
@@ -32,6 +32,9 @@ mdanki sync ./notes --verbose
 
 # Delete cards from Anki that are no longer in markdown
 mdanki sync ./notes --delete
+
+# Use a custom root deck name (instead of directory name)
+mdanki sync ./notes --deck "My Custom Deck"
 ```
 
 ## Card Format

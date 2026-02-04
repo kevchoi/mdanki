@@ -25,7 +25,7 @@ def cmd_parse(args: argparse.Namespace) -> int:
     if not path.is_dir():
         print(f"Path is not a directory: {path}", file=sys.stderr)
         return 1
-    cards = parse_all(path)
+    cards = parse_all(path, deck_name=getattr(args, "deck", None))
     print(f"Parsed {len(cards)} cards from {path}")
     for card in cards:
         print(
@@ -53,6 +53,7 @@ def cmd_sync(args: argparse.Namespace) -> int:
             dry_run=args.dry_run,
             verbose=args.verbose,
             delete=args.delete,
+            deck_name=getattr(args, "deck", None),
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
@@ -91,6 +92,13 @@ def main() -> int:
         type=Path,
         help="Path to directory with markdown files",
     )
+    parse_parser.add_argument(
+        "-d",
+        "--deck",
+        type=str,
+        default=None,
+        help="Custom root deck name (default: derived from directory name)",
+    )
     parse_parser.set_defaults(func=cmd_parse)
 
     sync_parser = subparsers.add_parser(
@@ -118,6 +126,13 @@ def main() -> int:
         "--delete",
         action="store_true",
         help="Delete notes in Anki that are no longer in markdown",
+    )
+    sync_parser.add_argument(
+        "-d",
+        "--deck",
+        type=str,
+        default=None,
+        help="Custom root deck name (default: derived from directory name)",
     )
     sync_parser.set_defaults(func=cmd_sync)
 

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from mdanki.parser import (
     MarkdownCard,
+    format_deck_part,
     get_deck_from_path,
     parse_markdown_file,
     parse_all,
@@ -22,13 +23,27 @@ def test_compute_hash():
 def test_get_deck_from_path_root():
     base = Path("/notes")
     file = Path("/notes/test.md")
-    assert get_deck_from_path(file, base) == "notes"
+    assert get_deck_from_path(file, base) == "Notes"
 
 
 def test_get_deck_from_path_nested():
     base = Path("/notes")
     file = Path("/notes/python/basics/test.md")
-    assert get_deck_from_path(file, base) == "notes::python::basics"
+    assert get_deck_from_path(file, base) == "Notes::Python::Basics"
+
+
+def test_get_deck_from_path_custom_deck_name():
+    base = Path("/notes")
+    file = Path("/notes/test.md")
+    assert get_deck_from_path(file, base, deck_name="My Deck") == "My Deck"
+
+
+def test_get_deck_from_path_custom_deck_name_nested():
+    base = Path("/notes")
+    file = Path("/notes/python/basics/test.md")
+    assert (
+        get_deck_from_path(file, base, deck_name="My Deck") == "My Deck::Python::Basics"
+    )
 
 
 def test_parse_markdown_file():
@@ -53,7 +68,7 @@ print("hello")
 
         assert cards[0].front_raw == "What is Python?"
         assert cards[0].back_raw == "A programming language."
-        assert cards[0].deck == base.name
+        assert cards[0].deck == format_deck_part(base.name)
 
         assert cards[1].front_raw == "How do you print?"
         assert "print" in cards[1].back_raw
@@ -89,5 +104,23 @@ def test_parse_all():
 
         assert len(cards) == 2
         decks = {c.deck for c in cards}
-        assert f"{base.name}::topic1" in decks
-        assert f"{base.name}::topic2" in decks
+        assert f"{format_deck_part(base.name)}::Topic1" in decks
+        assert f"{format_deck_part(base.name)}::Topic2" in decks
+
+
+def test_parse_all_custom_deck_name():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        base = Path(tmpdir)
+
+        (base / "topic1").mkdir()
+        (base / "topic1" / "file.md").write_text("## Q1\n\nA1")
+
+        (base / "topic2").mkdir()
+        (base / "topic2" / "file.md").write_text("## Q2\n\nA2")
+
+        cards = parse_all(base, deck_name="Custom Root")
+
+        assert len(cards) == 2
+        decks = {c.deck for c in cards}
+        assert "Custom Root::Topic1" in decks
+        assert "Custom Root::Topic2" in decks

@@ -18,11 +18,20 @@ class MarkdownCard:
         return hashlib.sha256(front_raw.encode("utf-8")).hexdigest()[:16]
 
 
-def get_deck_from_path(file_path: Path, base_path: Path) -> str:
-    deck = base_path.name
+def format_deck_part(name: str) -> str:
+    words = name.replace("-", " ").split()
+    if not words:
+        return name
+    return " ".join([words[0].capitalize()] + [w.lower() for w in words[1:]])
+
+
+def get_deck_from_path(
+    file_path: Path, base_path: Path, deck_name: str | None = None
+) -> str:
+    deck = deck_name if deck_name else format_deck_part(base_path.name)
     try:
         relative = file_path.parent.relative_to(base_path)
-        parts = relative.parts
+        parts = [format_deck_part(p) for p in relative.parts]
         if parts:
             return deck + "::" + "::".join(parts)
     except ValueError:
@@ -30,9 +39,11 @@ def get_deck_from_path(file_path: Path, base_path: Path) -> str:
     return deck
 
 
-def parse_markdown_file(file_path: Path, base_path: Path) -> list[MarkdownCard]:
+def parse_markdown_file(
+    file_path: Path, base_path: Path, deck_name: str | None = None
+) -> list[MarkdownCard]:
     content = file_path.read_text(encoding="utf-8")
-    deck = get_deck_from_path(file_path, base_path)
+    deck = get_deck_from_path(file_path, base_path, deck_name)
     relative_path = file_path.relative_to(base_path.parent)
     source_file = str(relative_path)
 
@@ -66,7 +77,7 @@ def parse_markdown_file(file_path: Path, base_path: Path) -> list[MarkdownCard]:
     return cards
 
 
-def parse_all(base_path: Path) -> list[MarkdownCard]:
+def parse_all(base_path: Path, deck_name: str | None = None) -> list[MarkdownCard]:
     files = sorted(base_path.rglob("*.md"))
     if not files:
         print(f"No markdown files found in {base_path}", file=sys.stderr)
@@ -74,5 +85,5 @@ def parse_all(base_path: Path) -> list[MarkdownCard]:
 
     cards: list[MarkdownCard] = []
     for file_path in files:
-        cards.extend(parse_markdown_file(file_path, base_path))
+        cards.extend(parse_markdown_file(file_path, base_path, deck_name))
     return cards
