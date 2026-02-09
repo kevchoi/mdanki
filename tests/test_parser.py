@@ -3,7 +3,6 @@ from pathlib import Path
 
 from mdanki.parser import (
     MarkdownCard,
-    format_deck_part,
     get_deck_from_path,
     parse_markdown_file,
     parse_all,
@@ -23,13 +22,13 @@ def test_compute_hash():
 def test_get_deck_from_path_root():
     base = Path("/notes")
     file = Path("/notes/test.md")
-    assert get_deck_from_path(file, base) == "Notes"
+    assert get_deck_from_path(file, base) == "Default"
 
 
 def test_get_deck_from_path_nested():
     base = Path("/notes")
     file = Path("/notes/python/basics/test.md")
-    assert get_deck_from_path(file, base) == "Notes::Python::Basics"
+    assert get_deck_from_path(file, base) == "Python::Basics"
 
 
 def test_parse_markdown_file():
@@ -54,7 +53,7 @@ print("hello")
 
         assert cards[0].front_raw == "What is Python?"
         assert cards[0].back_raw == "A programming language."
-        assert cards[0].deck == format_deck_part(base.name)
+        assert cards[0].deck == "Default"
 
         assert cards[1].front_raw == "How do you print?"
         assert "print" in cards[1].back_raw
@@ -90,5 +89,5 @@ def test_parse_all():
 
         assert len(cards) == 2
         decks = {c.deck for c in cards}
-        assert f"{format_deck_part(base.name)}::Topic1" in decks
-        assert f"{format_deck_part(base.name)}::Topic2" in decks
+        assert "Topic1" in decks
+        assert "Topic2" in decks

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .anki import AnkiClient, NOTE_TYPE_NAME
-from .parser import format_deck_part, parse_all
+from .parser import parse_all
 from .render import render_markdown
 
 
@@ -136,8 +136,9 @@ def sync(
             else:
                 stats.created += 1
 
+    base_dir = path.name
+
     if delete:
-        base_dir = path.name
         markdown_hashes = {card.source_hash for card in cards}
         orphaned_notes = [
             note
@@ -154,11 +155,17 @@ def sync(
             stats.deleted = len(orphaned_notes)
 
     if not dry_run and (stats.moved > 0 or stats.deleted > 0):
-        root_deck = format_deck_part(path.name)
-        deleted_decks = client.delete_empty_decks(root_deck)
-        if verbose:
-            for deck in deleted_decks:
-                print(f"Removed empty deck: {deck}")
+        root_decks = {card.deck.split("::")[0] for card in cards}
+        root_decks |= {
+            note.deck.split("::")[0]
+            for note in existing.values()
+            if note.source_file.startswith(base_dir + "/")
+        }
+        for root_deck in root_decks:
+            deleted_decks = client.delete_empty_decks(root_deck)
+            if verbose:
+                for deck in deleted_decks:
+                    print(f"Removed empty deck: {deck}")
 
     stats.total = len(existing) + stats.created - stats.deleted
 

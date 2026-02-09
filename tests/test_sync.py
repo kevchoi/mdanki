@@ -43,10 +43,10 @@ def cleanup_test_deck(client):
 
 def test_sync_creates_new_cards(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
 
-        (base / "test.md").write_text("""## Test Question 1
+        (base / TEST_DECK_PREFIX / "test.md").write_text("""## Test Question 1
 
 Test answer 1.
 
@@ -68,10 +68,10 @@ Test answer 2.
 
 def test_sync_dry_run(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
 
-        (base / "test.md").write_text("""## Dry Run Question
+        (base / TEST_DECK_PREFIX / "test.md").write_text("""## Dry Run Question
 
 Dry run answer.
 """)
@@ -86,10 +86,10 @@ Dry run answer.
 
 def test_sync_updates_changed_cards(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
 
-        test_file = base / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "test.md"
         test_file.write_text("""## Update Test Question
 
 Original answer.
@@ -109,18 +109,18 @@ Updated answer with new content.
 
 def test_sync_moves_cards_between_decks(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
-        (base / "subdir").mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
+        (base / TEST_DECK_PREFIX / "subdir").mkdir()
 
-        test_file = base / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "test.md"
         test_file.write_text("""## Move Test Question
 
 Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        new_file = base / "subdir" / "test.md"
+        new_file = base / TEST_DECK_PREFIX / "subdir" / "test.md"
         test_file.rename(new_file)
 
         stats = sync(base, client, dry_run=False, verbose=False)
@@ -130,10 +130,10 @@ Answer.
 
 def test_sync_deletes_orphaned_notes(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
 
-        test_file = base / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "test.md"
         test_file.write_text("""## Question to Delete
 
 Answer.
@@ -160,10 +160,10 @@ Answer.
 
 def test_sync_delete_dry_run(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
 
-        test_file = base / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "test.md"
         test_file.write_text("""## Question to Delete
 
 Answer.
@@ -183,11 +183,11 @@ Answer.
 
 def test_sync_removes_empty_deck_after_move(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
-        (base / "subdir").mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
+        (base / TEST_DECK_PREFIX / "subdir").mkdir()
 
-        test_file = base / "subdir" / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "subdir" / "test.md"
         test_file.write_text("""## Question
 
 Answer.
@@ -198,9 +198,9 @@ Answer.
         deck_names = client.get_deck_names()
         assert subdir_deck in deck_names
 
-        new_file = base / "test.md"
+        new_file = base / TEST_DECK_PREFIX / "test.md"
         test_file.rename(new_file)
-        (base / "subdir").rmdir()
+        (base / TEST_DECK_PREFIX / "subdir").rmdir()
 
         sync(base, client, dry_run=False, verbose=False)
 
@@ -210,21 +210,23 @@ Answer.
 
 def test_sync_keeps_non_empty_deck_after_move(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
-        (base / "subdir").mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
+        (base / TEST_DECK_PREFIX / "subdir").mkdir()
 
-        (base / "subdir" / "test1.md").write_text("""## Question 1
+        (base / TEST_DECK_PREFIX / "subdir" / "test1.md").write_text("""## Question 1
 
 Answer 1.
 """)
-        (base / "subdir" / "test2.md").write_text("""## Question 2
+        (base / TEST_DECK_PREFIX / "subdir" / "test2.md").write_text("""## Question 2
 
 Answer 2.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        (base / "subdir" / "test1.md").rename(base / "test1.md")
+        (base / TEST_DECK_PREFIX / "subdir" / "test1.md").rename(
+            base / TEST_DECK_PREFIX / "test1.md"
+        )
 
         sync(base, client, dry_run=False, verbose=False)
 
@@ -235,11 +237,11 @@ Answer 2.
 
 def test_sync_removes_empty_deck_after_delete(client, cleanup_test_deck):
     with tempfile.TemporaryDirectory() as tmpdir:
-        base = Path(tmpdir) / TEST_DECK_PREFIX
-        base.mkdir()
-        (base / "subdir").mkdir()
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
+        (base / TEST_DECK_PREFIX / "subdir").mkdir()
 
-        test_file = base / "subdir" / "test.md"
+        test_file = base / TEST_DECK_PREFIX / "subdir" / "test.md"
         test_file.write_text("""## Question
 
 Answer.
@@ -251,7 +253,7 @@ Answer.
         assert subdir_deck in deck_names
 
         test_file.unlink()
-        (base / "subdir").rmdir()
+        (base / TEST_DECK_PREFIX / "subdir").rmdir()
 
         sync(base, client, dry_run=False, verbose=False, delete=True)
 

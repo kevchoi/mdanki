@@ -26,15 +26,11 @@ def format_deck_part(name: str) -> str:
 
 
 def get_deck_from_path(file_path: Path, base_path: Path) -> str:
-    deck = format_deck_part(base_path.name)
-    try:
-        relative = file_path.parent.relative_to(base_path)
-        parts = [format_deck_part(p) for p in relative.parts]
-        if parts:
-            return deck + "::" + "::".join(parts)
-    except ValueError:
-        pass
-    return deck
+    relative = file_path.parent.relative_to(base_path)
+    parts = [format_deck_part(p) for p in relative.parts]
+    if not parts:
+        return "Default"
+    return "::".join(parts)
 
 
 def parse_markdown_file(file_path: Path, base_path: Path) -> list[MarkdownCard]:
