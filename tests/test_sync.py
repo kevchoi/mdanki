@@ -4,9 +4,11 @@ from pathlib import Path
 import pytest
 
 from mdanki.anki import AnkiClient
+from mdanki.parser import format_deck_part
 from mdanki.sync import sync
 
 TEST_DECK_PREFIX = "mdanki-test"
+TEST_DECK = format_deck_part(TEST_DECK_PREFIX)
 
 
 @pytest.fixture
@@ -21,15 +23,21 @@ def client():
 
 @pytest.fixture
 def cleanup_test_deck(client):
+    # Clean up before test to ensure a clean state
+    deck_names = client.get_deck_names()
+    for deck in deck_names:
+        if deck.startswith(TEST_DECK):
+            client._request("deleteDecks", decks=[deck], cardsToo=True)
+
     yield
 
-    note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}*")
+    note_ids = client.find_notes(f'"deck:{TEST_DECK}*"')
     if note_ids:
         client.delete_notes(note_ids)
 
     deck_names = client.get_deck_names()
     for deck in deck_names:
-        if deck.startswith(TEST_DECK_PREFIX):
+        if deck.startswith(TEST_DECK):
             client._request("deleteDecks", decks=[deck], cardsToo=True)
 
 
@@ -54,7 +62,7 @@ Test answer 2.
         assert stats.moved == 0
         assert len(stats.errors) == 0
 
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 2
 
 
@@ -72,7 +80,7 @@ Dry run answer.
 
         assert stats.created == 1
 
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 0
 
 
@@ -136,7 +144,7 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 2
 
         test_file.write_text("""## Question to Keep
@@ -146,7 +154,7 @@ Answer.
         stats = sync(base, client, dry_run=False, verbose=False, delete=True)
 
         assert stats.deleted == 1
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 1
 
 
@@ -162,14 +170,14 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 1
 
         test_file.write_text("")
         stats = sync(base, client, dry_run=True, verbose=False, delete=True)
 
         assert stats.deleted == 1
-        note_ids = client.find_notes(f"deck:{TEST_DECK_PREFIX}")
+        note_ids = client.find_notes(f'"deck:{TEST_DECK}"')
         assert len(note_ids) == 1
 
 
@@ -186,8 +194,9 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
+        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
         deck_names = client.get_deck_names()
-        assert f"{TEST_DECK_PREFIX}::subdir" in deck_names
+        assert subdir_deck in deck_names
 
         new_file = base / "test.md"
         test_file.rename(new_file)
@@ -196,7 +205,7 @@ Answer.
         sync(base, client, dry_run=False, verbose=False)
 
         deck_names = client.get_deck_names()
-        assert f"{TEST_DECK_PREFIX}::subdir" not in deck_names
+        assert subdir_deck not in deck_names
 
 
 def test_sync_keeps_non_empty_deck_after_move(client, cleanup_test_deck):
@@ -215,14 +224,13 @@ Answer 2.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        # Move only one file out
         (base / "subdir" / "test1.md").rename(base / "test1.md")
 
         sync(base, client, dry_run=False, verbose=False)
 
-        # Deck should still exist since test2 is still there
+        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
         deck_names = client.get_deck_names()
-        assert f"{TEST_DECK_PREFIX}::subdir" in deck_names
+        assert subdir_deck in deck_names
 
 
 def test_sync_removes_empty_deck_after_delete(client, cleanup_test_deck):
@@ -238,8 +246,9 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
+        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
         deck_names = client.get_deck_names()
-        assert f"{TEST_DECK_PREFIX}::subdir" in deck_names
+        assert subdir_deck in deck_names
 
         test_file.unlink()
         (base / "subdir").rmdir()
@@ -247,4 +256,4 @@ Answer.
         sync(base, client, dry_run=False, verbose=False, delete=True)
 
         deck_names = client.get_deck_names()
-        assert f"{TEST_DECK_PREFIX}::subdir" not in deck_names
+        assert subdir_deck not in deck_names

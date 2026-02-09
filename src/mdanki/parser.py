@@ -18,11 +18,18 @@ class MarkdownCard:
         return hashlib.sha256(front_raw.encode("utf-8")).hexdigest()[:16]
 
 
+def format_deck_part(name: str) -> str:
+    words = name.replace("-", " ").split()
+    if not words:
+        return name
+    return " ".join([words[0].capitalize()] + [w.lower() for w in words[1:]])
+
+
 def get_deck_from_path(file_path: Path, base_path: Path) -> str:
-    deck = base_path.name
+    deck = format_deck_part(base_path.name)
     try:
         relative = file_path.parent.relative_to(base_path)
-        parts = relative.parts
+        parts = [format_deck_part(p) for p in relative.parts]
         if parts:
             return deck + "::" + "::".join(parts)
     except ValueError:

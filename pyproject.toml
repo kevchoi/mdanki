@@ -1,5 +1,5 @@
 [project]
-name = "md-anki"
+name = "mdanki"
 version = "0.1.0"
 description = "Sync Markdown notes to Anki via AnkiConnect"
 readme = "README.md"
