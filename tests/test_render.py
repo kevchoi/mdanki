@@ -32,3 +32,26 @@ def test_render_list():
 - item 3""")
     assert "<ul>" in result
     assert "<li>" in result
+
+
+def test_render_inline_math():
+    result = render_markdown("Energy is $E=mc^2$ right?")
+    assert r"\(E=mc^2\)" in result
+
+
+def test_render_block_math():
+    result = render_markdown("$$\n\\int_0^1 x\\,dx\n$$")
+    assert r"\[\int_0^1 x\,dx\]" in result
+
+
+def test_render_math_with_underscores():
+    result = render_markdown("$a_1 + a_2$")
+    assert r"\(a_1 + a_2\)" in result
+    assert "<em>" not in result
+
+
+def test_render_mixed_math_and_markdown():
+    result = render_markdown("The formula $E=mc^2$ is **important** in `physics`.")
+    assert r"\(E=mc^2\)" in result
+    assert "<strong>important</strong>" in result
+    assert "<code>physics</code>" in result
