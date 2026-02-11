@@ -136,7 +136,7 @@ def sync(
             else:
                 stats.created += 1
 
-    base_dir = path.name
+    base_dir = str(path.relative_to(path.parent))
 
     if delete:
         markdown_hashes = {card.source_hash for card in cards}
