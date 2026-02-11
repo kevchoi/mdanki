@@ -100,10 +100,22 @@ class AnkiClient:
     def delete_empty_decks(self, prefix: str) -> list[str]:
         deck_names = self.get_deck_names()
         deleted = []
-        for deck in deck_names:
-            if deck.startswith(prefix + "::"):
-                note_ids = self.find_notes(f'deck:"{deck}"')
-                if not note_ids:
-                    self._request("deleteDecks", decks=[deck], cardsToo=True)
-                    deleted.append(deck)
+        # Delete sub-decks deepest-first so parents cascade to empty
+        matching = sorted(
+            [d for d in deck_names if d.startswith(prefix + "::")],
+            key=lambda d: d.count("::"),
+            reverse=True,
+        )
+        for deck in matching:
+            note_ids = self.find_notes(f'deck:"{deck}"')
+            if not note_ids:
+                self._request("deleteDecks", decks=[deck], cardsToo=True)
+                deleted.append(deck)
+        # Also check the root deck itself
+        deck_names = self.get_deck_names()
+        if prefix in deck_names:
+            note_ids = self.find_notes(f'deck:"{prefix}"')
+            if not note_ids:
+                self._request("deleteDecks", decks=[prefix], cardsToo=True)
+                deleted.append(prefix)
         return deleted

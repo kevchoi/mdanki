@@ -259,3 +259,26 @@ Answer.
 
         deck_names = client.get_deck_names()
         assert subdir_deck not in deck_names
+
+
+def test_sync_removes_root_deck_after_delete(client, cleanup_test_deck):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        base = Path(tmpdir)
+        (base / TEST_DECK_PREFIX).mkdir()
+
+        test_file = base / TEST_DECK_PREFIX / "test.md"
+        test_file.write_text("""## Question
+
+Answer.
+""")
+        sync(base, client, dry_run=False, verbose=False)
+
+        deck_names = client.get_deck_names()
+        assert TEST_DECK in deck_names
+
+        test_file.write_text("")
+
+        sync(base, client, dry_run=False, verbose=False, delete=True)
+
+        deck_names = client.get_deck_names()
+        assert TEST_DECK not in deck_names
