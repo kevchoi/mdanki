@@ -4,11 +4,10 @@ from pathlib import Path
 import pytest
 
 from mdanki.anki import AnkiClient
-from mdanki.parser import format_deck_part
 from mdanki.sync import sync
 
 TEST_DECK_PREFIX = "mdanki-test"
-TEST_DECK = format_deck_part(TEST_DECK_PREFIX)
+TEST_DECK = TEST_DECK_PREFIX
 
 
 @pytest.fixture
@@ -194,7 +193,7 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
+        subdir_deck = f"{TEST_DECK}::subdir"
         deck_names = client.get_deck_names()
         assert subdir_deck in deck_names
 
@@ -230,7 +229,7 @@ Answer 2.
 
         sync(base, client, dry_run=False, verbose=False)
 
-        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
+        subdir_deck = f"{TEST_DECK}::subdir"
         deck_names = client.get_deck_names()
         assert subdir_deck in deck_names
 
@@ -248,7 +247,7 @@ Answer.
 """)
         sync(base, client, dry_run=False, verbose=False)
 
-        subdir_deck = f"{TEST_DECK}::{format_deck_part('subdir')}"
+        subdir_deck = f"{TEST_DECK}::subdir"
         deck_names = client.get_deck_names()
         assert subdir_deck in deck_names
 

@@ -119,8 +119,8 @@ def sync(
         else:
             if verbose:
                 print(f"Creating: {card.front_raw[:50]}")
-            if not dry_run:
-                try:
+            try:
+                if not dry_run:
                     client.add_note(
                         deck=card.deck,
                         front=front_html,
@@ -128,15 +128,11 @@ def sync(
                         source_hash=card.source_hash,
                         source_file=card.source_file,
                     )
-                    stats.created += 1
-                except Exception as e:
-                    stats.errors.append(
-                        f"Failed to create '{card.front_raw[:50]}': {e}"
-                    )
-            else:
                 stats.created += 1
+            except Exception as e:
+                stats.errors.append(f"Failed to create '{card.front_raw[:50]}': {e}")
 
-    base_dir = str(path.relative_to(path.parent))
+    base_dir = path.name
 
     if delete:
         markdown_hashes = {card.source_hash for card in cards}

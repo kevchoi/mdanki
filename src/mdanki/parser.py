@@ -66,8 +66,4 @@ def parse_all(base_path: Path) -> list[MarkdownCard]:
     if not files:
         print(f"No markdown files found in {base_path}", file=sys.stderr)
         return []
-
-    cards: list[MarkdownCard] = []
-    for file_path in files:
-        cards.extend(parse_markdown_file(file_path, base_path))
-    return cards
+    return [card for f in files for card in parse_markdown_file(f, base_path)]

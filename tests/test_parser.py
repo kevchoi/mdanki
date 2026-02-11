@@ -28,7 +28,7 @@ def test_get_deck_from_path_root():
 def test_get_deck_from_path_nested():
     base = Path("/notes")
     file = Path("/notes/python/basics/test.md")
-    assert get_deck_from_path(file, base) == "Python::Basics"
+    assert get_deck_from_path(file, base) == "python::basics"
 
 
 def test_parse_markdown_file():
@@ -89,5 +89,5 @@ def test_parse_all():
 
         assert len(cards) == 2
         decks = {c.deck for c in cards}
-        assert "Topic1" in decks
-        assert "Topic2" in decks
+        assert "topic1" in decks
+        assert "topic2" in decks
